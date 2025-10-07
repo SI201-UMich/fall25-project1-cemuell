@@ -34,11 +34,19 @@ def open_file(file):
         print(data[0])
         return data
 
-#def adelie_flipper(data):
-    
-#def main():
-#CALLS ALL FUNCTIONS
+def adelie_flipper(data):
+    adelie_flipper_list = []
+    for item in data:
+        if item["species"] == "Adelie":
+            for k,v in item.items():
+                if k == "flipper_length_mm":
+                    adelie_flipper_list.append(v)
+    return adelie_flipper_list
 
-open_file("penguins.csv")
+#def ave_flipper_length(lst):
 
-#main()
+
+def main():
+    open_file("penguins.csv")
+
+main()
