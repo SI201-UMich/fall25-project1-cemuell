@@ -31,7 +31,6 @@ def open_file(file):
                 d[headers[8]] = year
                 data.append(d)
         f.close()
-        print(data[0])
         return data
 
 def adelie_flipper(data):
@@ -43,10 +42,20 @@ def adelie_flipper(data):
                     adelie_flipper_list.append(v)
     return adelie_flipper_list
 
-#def ave_flipper_length(lst):
-
+def ave_flipper_length(lst):
+    total = 0
+    counted_penguins = 0
+    for num in lst:
+        if num == "NA":
+            total += 0
+        else: 
+            total += int(num)
+            counted_penguins += 1
+    return total / counted_penguins
 
 def main():
-    open_file("penguins.csv")
+    penguin_data = open_file("penguins.csv")
+    flipper_list = adelie_flipper(penguin_data)
+    print(ave_flipper_length(flipper_list))
 
 main()
