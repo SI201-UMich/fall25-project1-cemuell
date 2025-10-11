@@ -4,6 +4,7 @@
 # No use of GenAI
 
 #MAKE SURE EACH CALCULATION UTILIZES 3 DIFF COLUMNS
+#Currently no functions are called in each other
 
 import csv
 
@@ -65,6 +66,19 @@ def penguin_pop(data):
     print(island_pop)
     return island_pop
 
+#ADD THIRD COLUMN >:()
+def percent_population(island_pop, island, species, data):
+    total_pop = island_pop[island]
+    count = 0
+    for item in data:
+        if item["island"] == island and item["species"] == species:
+            count += 1
+    percent = count / total_pop * 100
+    percent = round(percent, 2)
+    return percent
+
+#write output to a csv/txt file (ask at office hours)
+
 def main():
     penguin_data = open_file("penguins.csv")
     adelie_flipper_list = female_flipper(penguin_data, "Adelie")
@@ -72,6 +86,8 @@ def main():
     print(f"Average Female Adelie Flipper Length: {ave_flipper_length(adelie_flipper_list)}")
     print(f"Average Female Gentoo Flipper Length: {ave_flipper_length(gentoo_flipper_list)}")
     island_penguins = penguin_pop(penguin_data)
+    adelie_percent_dream = percent_population(island_penguins, "Dream", "Adelie", penguin_data)
+    print(f"Rounded Percentage of Adelie on Dream island: {adelie_percent_dream}%")
 
 main()
 
