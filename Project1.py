@@ -4,9 +4,9 @@
 # No use of GenAI
 
 #MAKE SURE EACH CALCULATION UTILIZES 3 DIFF COLUMNS
-#Currently no functions are called in each other
 
 import csv
+import unittest
 
 def open_file(file):
     with open(file) as f:
@@ -43,7 +43,9 @@ def female_flipper(data, species):
             for k,v in item.items():
                 if k == "flipper_length_mm":
                     flipper_list.append(v)
-    return flipper_list
+    average = ave_flipper_length(flipper_list)
+    print(f"Average Female {species} Flipper Length: {average}")
+    return average
 
 def ave_flipper_length(lst):
     total = 0
@@ -75,11 +77,45 @@ def percent_population(island_pop, island, species, data):
             count += 1
     percent = count / total_pop * 100
     percent = round(percent, 2)
+    print(f"Rounded Percentage of {species} on {island} island: {percent}%")
     return percent
 
-#write output to a csv/txt file (ask at office hours)
+#how to know whether to write output to a csv/txt file?
+
+
+#need test case for ave_flipper_length since its called in a different function?
+# FOUR test cases for each function
+class project_Test(unittest.TestCase):
+    def setUp(self):
+        self.open = open_file("penguins.csv")
+        self.fem_flip = female_flipper(self.open, "Adelie")
+        self.pop = penguin_pop(self.open)
+        self.percent = percent_population(self.pop, "Dream", "Adelie", self.open)
+
+    def test_csv(self):
+        #Checks self.open is a list, and each item is a dict
+        self.assertIsInstance(self.open, list)
+        self.assertIsInstance(self.open[0], dict)
+        #Checks bill length of first penguin
+        self.assertEqual(self.open[0]["bill_length_mm"], '39.1')
+        #Checks island of 52nd penguin
+        self.assertEqual(self.open[51]["island"], 'Biscoe')
+        #Checks sex of 14th penguin
+        self.assertEqual(self.open[13]["sex"], 'male')
+
+    def test_ave_flipper(self):
+        return
+
+    def test_pop(self):
+        return
+
+    def test_percent(self):
+        return
 
 def main():
+    unittest.main(verbosity=2)
+
+    """
     penguin_data = open_file("penguins.csv")
     adelie_flipper_list = female_flipper(penguin_data, "Adelie")
     gentoo_flipper_list = female_flipper(penguin_data, "Gentoo")
@@ -88,8 +124,8 @@ def main():
     island_penguins = penguin_pop(penguin_data)
     adelie_percent_dream = percent_population(island_penguins, "Dream", "Adelie", penguin_data)
     print(f"Rounded Percentage of Adelie on Dream island: {adelie_percent_dream}%")
+    """
 
 main()
 
-#USE UNITTEST MODULE
-#unittest()
+
