@@ -3,7 +3,7 @@
 #Student Email: cemuell@umich.edu
 # No use of GenAI
 
-#MAKE SURE EACH CALCULATION UTILIZES 3 DIFF COLUMNS
+#ADD FAILSAFES FOR NO ANSWER
 
 import csv
 import unittest
@@ -16,26 +16,19 @@ def open_file(file):
         for line in csvFile:
             d = {}
             if len(line) == 9:
-                species = line[1]
-                d[headers[1]] = species
-                island = line[2]
-                d[headers[2]] = island
-                bill_length_mm = line[3]
-                d[headers[3]] = bill_length_mm
-                bill_depth_mm = line[4]
-                d[headers[4]] = bill_depth_mm
-                flipper_length_mm = line[5]
-                d[headers[5]] = flipper_length_mm
-                body_mass_g = line[6]
-                d[headers[6]] = body_mass_g
-                sex = line[7]
-                d[headers[7]] = sex
-                year = line[8]
-                d[headers[8]] = year
+                d[headers[1]] = line[1]
+                d[headers[2]] = line[2]
+                d[headers[3]] = line[3]
+                d[headers[4]] = line[4]
+                d[headers[5]] = line[5]
+                d[headers[6]] =  line[6]
+                d[headers[7]] = line[7]
+                d[headers[8]] = line[8]
                 data.append(d)
         f.close()
         return data
 
+#Fulfill 3 column requirement?
 def female_flipper(data, species):
     flipper_list = []
     for item in data:
@@ -43,6 +36,7 @@ def female_flipper(data, species):
             for k,v in item.items():
                 if k == "flipper_length_mm":
                     flipper_list.append(v)
+    #call other function in here
     average = ave_flipper_length(flipper_list)
     print(f"Average Female {species} Flipper Length: {average}")
     return average
@@ -68,8 +62,8 @@ def penguin_pop(data):
     print(island_pop)
     return island_pop
 
-#ADD THIRD COLUMN >:()
-def percent_population(island_pop, island, species, data):
+def percent_population(island, species, data):
+    island_pop = penguin_pop(data)
     total_pop = island_pop[island]
     count = 0
     for item in data:
@@ -80,7 +74,63 @@ def percent_population(island_pop, island, species, data):
     print(f"Percentage of {species} on {island} island: {percent}%")
     return percent
 
-#how to know whether to write output to a csv/txt file?
+def body_mass(species, data):
+    mass_list = []
+    for item in data:
+        d = {}
+        if item["species"] == species:
+            d["island"] = item[2]
+            d["body mass"] = item[6]
+            mass_list.append(d)
+    print(mass_list[3])
+    return mass_list
+
+def total_ave(lst):
+    total = 0
+    count = 0
+    for dct in lst:
+        total += dct["body mass"]
+        count += 1
+    ave = total / count
+    return ave
+
+def island_ave(island, lst):
+    mass_total = 0 
+    count = 0
+    for dct in lst:
+        if dct["island"] == island:
+            mass_total += dct["body mass"]
+            count += 1
+    mass_ave = mass_total / count
+    return mass_ave
+        
+
+#for specific penguins on specific island, compare body mass to average?
+def penguin_mass_comparison(island, species, data):
+    percent = percent_population(island, species, data)
+    if percent == 0.0:
+        return "Calculation cannot be performed; no penguins are on this island"
+    body_mass_list = body_mass(species, data)
+    total_ave_mass = total_ave(species, body_mass_list)
+    great_count = 0
+    less_count = 0 
+    greater_dict = {}
+    lesser_dict = {}
+    for penguin_dict in body_mass_list:
+        if penguin_dict["body mass"] >= total_ave_mass:
+            great_count += 1
+            greater_dict[great_count] = penguin_dict["body mass"]
+        else:
+            less_count += 1
+            lesser_dict[less_count] = penguin_dict["body mass"]
+    population = penguin_pop(data)
+    island_pop = population[island]
+    percent_greater = great_count / island_pop
+    print(f"On {island}, {percent_greater} of {species} penguins are greater than the average {species} mass across islands.")
+    return percent_greater
+
+
+#how to know whether to write output to a csv/txt file? it's confusing
 
 
 # need test case for ave_flipper_length since its called in a different function?
@@ -93,10 +143,10 @@ class project_Test(unittest.TestCase):
         self.g_fem_flip = female_flipper(self.open, "Gentoo")
         self.c_fem_flip = female_flipper(self.open, "Chinstrap")
         self.pop = penguin_pop(self.open)
-        self.da_percent = percent_population(self.pop, "Dream", "Adelie", self.open)
-        self.tg_percent = percent_population(self.pop, "Torgersen", "Gentoo", self.open)
-        self.bc_percent = percent_population(self.pop, "Biscoe", "Chinstrap", self.open)
-        self.dc_percent = percent_population(self.pop, "Dream", "Chinstrap", self.open)
+        self.da_percent = percent_population("Dream", "Adelie", self.open)
+        self.tg_percent = percent_population("Torgersen", "Gentoo", self.open)
+        self.bc_percent = percent_population("Biscoe", "Chinstrap", self.open)
+        self.dc_percent = percent_population("Dream", "Chinstrap", self.open)
 
     def test_csv(self):
         #Checks self.open is a list, and each item is a dict
@@ -131,17 +181,6 @@ class project_Test(unittest.TestCase):
 def main():
     unittest.main(verbosity=2)
 
-    """
-    
-    penguin_data = open_file("penguins.csv")
-    adelie_flipper_list = female_flipper(penguin_data, "Adelie")
-    gentoo_flipper_list = female_flipper(penguin_data, "Gentoo")
-    print(f"Average Female Adelie Flipper Length: {ave_flipper_length(adelie_flipper_list)}")
-    print(f"Average Female Gentoo Flipper Length: {ave_flipper_length(gentoo_flipper_list)}")
-    island_penguins = penguin_pop(penguin_data)
-    adelie_percent_dream = percent_population(island_penguins, "Dream", "Adelie", penguin_data)
-    print(f"Rounded Percentage of Adelie on Dream island: {adelie_percent_dream}%")
-    """
 
 main()
 
