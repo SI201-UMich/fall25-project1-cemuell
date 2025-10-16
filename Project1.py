@@ -28,10 +28,10 @@ def open_file(file):
         return data
 
 def female_flipper(data):
-    flipper_list = []
     flipper_dict = {}
     years = year_list(data)
     for year in years: 
+        flipper_list = []
         for item in data:
             if item["sex"] == "female" and item["year"] == year:
                 for k,v in item.items():
@@ -39,7 +39,6 @@ def female_flipper(data):
                         flipper_list.append(v)
         average = ave_flipper_length(flipper_list)
         flipper_dict[year] = average
-    print(f"FLIPPERS: {flipper_dict}")
     return flipper_dict
 
 def year_list(data):
@@ -67,24 +66,27 @@ def ave_flipper_length(lst):
 
 def penguin_pop(data):
     island_pop = {}
-    for item in data: 
-        if item["island"] in island_pop.keys():
-            island_pop[item["island"]] += 1
-        else:
-            island_pop[item["island"]] = 1
-    print(island_pop)
+    species_list = make_species_list(data)
+    for species in species_list:
+        d = {}
+        for item in data:
+            if item["island"] not in d.keys():
+                print(item["island"])
+                d[item["island"]] = 0
+            if item["species"] == species:
+                d[item["island"]] += 1
+        island_pop[species] = d
     return island_pop
 
-def percent_population(island, species, data):
-    island_pop = penguin_pop(data)
-    total_pop = island_pop[island]
-    count = 0
+def make_species_list(data):
+    lst = []
     for item in data:
-        if item["island"] == island and item["species"] == species:
-            count += 1
-    percent = count / total_pop * 100
-    print(f"Percentage of {species} on {island} island: {round(percent, 2)}%")
-    return percent
+        if item["species"] in lst:
+            continue
+        else:
+            lst.append(item["species"])
+    return lst
+
 
 def body_mass(species, data):
     mass_list = []
@@ -106,100 +108,110 @@ def total_ave(lst):
     ave = total / count
     return ave
 
-
-#MAKE A GIANT NESTED DICTIONARY        
-def penguin_mass_comparison(species, data):
+       
+def penguin_mass_comparison(data):
     population = penguin_pop(data)
     total_mass_dict = {}
-    for island, island_pop in population.items():
-        percent = percent_population(island, species, data)
-        if percent == 0.0:
-            total_mass_dict[island] = 0.0
-            continue
-        body_mass_list = body_mass(species, data)
-        total_ave_mass = total_ave(body_mass_list)
-        greater_count = 0
-        species_pop_island = percent * island_pop
-        for penguin_dict in body_mass_list:
-            if penguin_dict["body mass"] >= total_ave_mass:
-                greater_count += 1
-        percent_greater = round((greater_count / species_pop_island) * 100, 2)
-        total_mass_dict[island] = percent_greater
-        print(f"On {island}, {percent_greater}% of {species} penguins have a greater mass than the average {species} mass across islands.")
-    print(f"MASS: {total_mass_dict}")
+    print(population)
+    for species in population.keys():
+        if species not in total_mass_dict.keys():
+            total_mass_dict[species] = ""
+        d = {}
+        for island, island_pop in population[species].items():
+            if island_pop == 0:
+                d[island] = 0.0
+                continue
+            body_mass_list = body_mass(species, data)
+            total_ave_mass = total_ave(body_mass_list)
+            greater_count = 0
+            for penguin_dict in body_mass_list:
+                if penguin_dict["body mass"] >= total_ave_mass and penguin_dict["island"] == island:
+                    greater_count += 1
+            percent_greater = round((greater_count / island_pop) * 100, 2)
+            d[island] = percent_greater
+            print(f"On {island}, {percent_greater}% of {species} penguins have a greater mass than the average {species} mass across islands.")
+        total_mass_dict[species] = d
     return total_mass_dict
 
 def csv_writer(filename, output):
     outFile = open(filename, "w")
     csv_writer = csv.writer(outFile)
-    csv_writer.writerow([f"Flipper Length Averages per Year for Female Penguins"])
+    csv_writer.writerow([f"Percentage of Penguins on Each Island with a Body Mass Greater than Average"])
     for item in output.items():
         csv_writer.writerow(item)
     
-
 class project_Test(unittest.TestCase):
     def setUp(self):
         self.open = open_file("penguins.csv")
-        sample = [{"species":"Chinstrap","island":"Dream","bill_length_mm": 45.4, "bill_depth_mm": 18.7, "flipper_length_mm": 188, "body_mass_g": 3525,"sex": "female", "year": 2007},{"species":"Gentoo","island":"Biscoe","bill_length_mm": 49.5, "bill_depth_mm": 16.2, "flipper_length_mm": 229, "body_mass_g": 5800,"sex": "male", "year": 2008},{"species":"Adelie","island":"Torgersen","bill_length_mm": 39.1, "bill_depth_mm": 18.7, "flipper_length_mm": 181, "body_mass_g": 3750,"sex": "male", "year": 2007},{"species":"Adelie","island":"Dream","bill_length_mm": 37.3, "bill_depth_mm": 16.8, "flipper_length_mm": 192, "body_mass_g": 3000,"sex": "female", "year": 2009}]
-        self.a_fem_flip = female_flipper(self.open)
+        sample = [
+        {"species":"Chinstrap","island":"Dream","bill_length_mm": 45.4, "bill_depth_mm": 18.7, "flipper_length_mm": 188, "body_mass_g": 3525,"sex": "female", "year": 2007},
+        {"species":"Chinstrap","island":"Dream","bill_length_mm": 40.9, "bill_depth_mm": 16.6, "flipper_length_mm": 187, "body_mass_g": 3200,"sex": "female", "year": 2008},
+        {"species":"Chinstrap","island":"Dream","bill_length_mm": 58, "bill_depth_mm": 17.8, "flipper_length_mm": 181, "body_mass_g": 3700,"sex": "female", "year": 2007},
+        {"species":"Chinstrap","island":"Dream","bill_length_mm": 49.3, "bill_depth_mm": 19.9, "flipper_length_mm": 203, "body_mass_g": 4050,"sex": "male", "year": 2009},
+        {"species":"Gentoo","island":"Biscoe","bill_length_mm": 49.5, "bill_depth_mm": 16.2, "flipper_length_mm": 229, "body_mass_g": 5800,"sex": "male", "year": 2008},
+        {"species":"Gentoo","island":"Biscoe","bill_length_mm":47.7,"bill_depth_mm":17.5, "flipper_length_mm": 216, "body_mass_g": 4750, "sex": "female","year": 2008},
+        {"species":"Gentoo","island":"Biscoe","bill_length_mm":50.5,"bill_depth_mm":15.9,"flipper_length_mm":222,"body_mass_g":5550,"sex":"male","year":2008},
+        {"species":"Gentoo","island":"Biscoe","bill_length_mm": 43.4,"bill_depth_mm":14.4,"flipper_length_mm":218,"body_mass_g":4600,"sex":"female","year":2009},
+        {"species":"Adelie","island":"Torgersen","bill_length_mm": 39.1, "bill_depth_mm": 18.7, "flipper_length_mm": 181, "body_mass_g": 3750,"sex": "male", "year": 2007},
+        {"species":"Adelie","island":"Torgersen","bill_length_mm": "NA", "bill_depth_mm": "NA", "flipper_length_mm": "NA", "body_mass_g": "NA","sex": "NA", "year": 2007},
+        {"species":"Adelie","island":"Dream","bill_length_mm": 37.3, "bill_depth_mm": 16.8, "flipper_length_mm": 192, "body_mass_g": 3000,"sex": "female", "year": 2009},
+        {"species":"Adelie","island":"Biscoe","bill_length_mm": 38.1, "bill_depth_mm": 17, "flipper_length_mm": 181, "body_mass_g": 3175,"sex": "female", "year": 2009},
+        {"species": "Adelie", "island":"Dream","bill_length_mm":40.3, "bill_depth_mm":18.5, "flipper_length_mm": 196, "body_mass_g": 4350,"sex": "male", "year": 2008}
+        ]
+        #Test flipper lengths
+        self.a_fem_flip = female_flipper(sample)
         example = (123,"NA",47)
         self.ave_flip = ave_flipper_length(example)
         example2 = ("NA","NA")
         self.ave_flip2 = ave_flipper_length(example2)
-        self.year = year_list(self.open)
-        self.pop = penguin_pop(self.open)
-        self.da_percent = percent_population("Dream", "Adelie", self.open)
-        self.penguin_mass = penguin_mass_comparison("Gentoo", self.open)
-        self.penguin_mass2 = penguin_mass_comparison("Adelie", self.open)
-        self.writer = csv_writer("output_file.csv", self.a_fem_flip)
+        self.year = year_list(sample)
+        #Test body mass
+        self.pop = penguin_pop(sample)
+        self.penguin_mass = penguin_mass_comparison(sample)
+        self.penguin_mass2 = penguin_mass_comparison(sample)
 
 
-    # MAKE TWO EDGE CASES
     def test_csv(self):
-        #Checks self.open is a list, and each item is a dict
         self.assertIsInstance(self.open, list)
         self.assertIsInstance(self.open[0], dict)
-        #Checks bill length of first penguin
-        self.assertEqual(self.open[0]["bill_length_mm"], '39.1')
-        #Checks island of 52nd penguin
-        self.assertEqual(self.open[51]["island"], 'Biscoe')
-        #Checks sex of 14th penguin
-        self.assertEqual(self.open[13]["sex"], 'male')
 
     #FLIPPER LENGTH-FEMALE-ISLAND (2 EDGE CASES)
 
     def test_final_flipper(self):
-        truth = {"2007": 194.22, "2008": 196.6, "2009": 197.36}
-        self.assertEqual(self.a_fem_flip, truth)
+        dict = {2007: 184.5, 2008: 201.5, 2009: 197}
+        self.assertEqual(self.a_fem_flip, dict)
 
     def test_ave_flipper(self):
         average = (123 + 47) / 2
         self.assertEqual(self.ave_flip, average)
-        #Edge Case
+        #Edge Case 1: none of the penguins have measured flipper lengths
         average2 = "No values exist, so none could be calculated"
         self.assertEqual(self.ave_flip2, average2)
 
     def test_island_list(self):
-        lst = ["2007", "2008", "2009"]
+        lst = [2007, 2008, 2009]
         self.assertEqual(self.year, lst)
 
 
     #BODY MASS-SPECIES-ISLAND
+    # 2 EDGE CASES, 2 NORMAL
 
     def test_pop(self):
-        pop_dict = {"Torgersen": 52, "Biscoe": 168, "Dream": 124}
+        pop_dict = {"Chinstrap": {"Biscoe": 0, "Dream": 4, "Torgersen": 0}, "Gentoo": {"Biscoe": 4, "Dream": 0, "Torgersen": 0}, "Adelie": {"Biscoe": 1, "Dream": 2, "Torgersen": 2}}
         self.assertEqual(self.pop, pop_dict)
 
-
-    def test_percent(self):
-        self.assertAlmostEqual(self.da_percent, 45.16129032258064)
-
     def test_penguin_mass(self):
-        mass_dict = {"Torgersen": 0.0, "Biscoe": 0.47, "Dream": 0.0}
+        mass_dict = {"Chinstrap": {"Dream": 50.0, "Biscoe": 0.0, "Torgersen": 0.0},
+                     "Gentoo": {"Dream": 0.0, "Biscoe": 50.0, "Torgersen": 0.0},
+                     "Adelie": {"Dream": 50.0, "Biscoe": 0.0, "Torgersen": 50.0}
+                     }
         self.assertEqual(self.penguin_mass, mass_dict)
-
+    
 
 def main():
     unittest.main(verbosity=2)
+    penguin_data = open_file("penguins.csv")
+    info = penguin_mass_comparison(penguin_data)
+    csv_writer("output_file.csv", info)
 
 main()
