@@ -72,7 +72,6 @@ def penguin_pop(data):
         d = {}
         for item in data:
             if item["island"] not in d.keys():
-                print(item["island"])
                 d[item["island"]] = 0
             if item["species"] == species:
                 d[item["island"]] += 1
@@ -114,7 +113,6 @@ def total_ave(lst):
 def penguin_mass_comparison(data):
     population = penguin_pop(data)
     total_mass_dict = {}
-    print(population)
     for species in population.keys():
         if species not in total_mass_dict.keys():
             total_mass_dict[species] = ""
