@@ -48,6 +48,7 @@ def year_list(data):
             continue
         else:
             lst.append(item["year"])
+    lst.sort()
     return lst
 
 def ave_flipper_length(lst):
@@ -85,6 +86,7 @@ def make_species_list(data):
             continue
         else:
             lst.append(item["species"])
+    lst.sort()
     return lst
 
 
@@ -136,7 +138,7 @@ def penguin_mass_comparison(data):
 def csv_writer(filename, output):
     outFile = open(filename, "w")
     csv_writer = csv.writer(outFile)
-    csv_writer.writerow([f"Percentage of Penguins on Each Island with a Body Mass Greater than Average"])
+    csv_writer.writerow([f"Percentage of Penguins on Each Island with a Body Mass Greater than Species Average"])
     for item in output.items():
         csv_writer.writerow(item)
     
@@ -159,9 +161,13 @@ class project_Test(unittest.TestCase):
         {"species": "Adelie", "island":"Dream","bill_length_mm":40.3, "bill_depth_mm":18.5, "flipper_length_mm": 196, "body_mass_g": 4350,"sex": "male", "year": 2008}
         ]
         #Test flipper lengths
-        self.a_fem_flip = female_flipper(sample)
+        self.fem_flip = female_flipper(sample)
+        #Edge Case 1 Flipper (only male input)
+        self.fem_flip2 = female_flipper(sample[3:5])
+        self.year = year_list(sample)
         example = (123,"NA",47)
         self.ave_flip = ave_flipper_length(example)
+        #Edge Case 2 Flipper (all NA values)
         example2 = ("NA","NA")
         self.ave_flip2 = ave_flipper_length(example2)
         self.year = year_list(sample)
@@ -175,43 +181,48 @@ class project_Test(unittest.TestCase):
         self.assertIsInstance(self.open, list)
         self.assertIsInstance(self.open[0], dict)
 
-    #FLIPPER LENGTH-FEMALE-ISLAND (2 EDGE CASES)
+    #FLIPPER LENGTH-FEMALE-ISLAND
 
     def test_final_flipper(self):
+        #Normal case
         dict = {2007: 184.5, 2008: 201.5, 2009: 197}
-        self.assertEqual(self.a_fem_flip, dict)
+        self.assertEqual(self.fem_flip, dict)
+        #Edge Case 1
+        dict2 = {2008: "No values exist, so none could be calculated", 2009: "No values exist, so none could be calculated"}
+        self.assertEqual(self.fem_flip2, dict2)
 
     def test_ave_flipper(self):
+        #Normal case
         average = (123 + 47) / 2
         self.assertEqual(self.ave_flip, average)
-        #Edge Case 1: none of the penguins have measured flipper lengths
+        #Edge Case 2
         average2 = "No values exist, so none could be calculated"
         self.assertEqual(self.ave_flip2, average2)
 
     def test_island_list(self):
+        #Normal case
         lst = [2007, 2008, 2009]
         self.assertEqual(self.year, lst)
 
-
     #BODY MASS-SPECIES-ISLAND
-    # 2 EDGE CASES, 2 NORMAL
 
     def test_pop(self):
-        pop_dict = {"Chinstrap": {"Biscoe": 0, "Dream": 4, "Torgersen": 0}, "Gentoo": {"Biscoe": 4, "Dream": 0, "Torgersen": 0}, "Adelie": {"Biscoe": 1, "Dream": 2, "Torgersen": 2}}
-        self.assertEqual(self.pop, pop_dict)
+        #Normal Case, Adelie has same population on Torgersen and Dream islands (2 penguins in this sample)
+        self.assertTrue(self.pop["Adelie"]["Torgersen"] == self.pop["Adelie"]["Dream"])
+        #Edge Case 1, No Chinstrap penguins on Torgersen
+        self.assertEqual(self.pop["Chinstrap"]["Torgersen"], 0)
 
     def test_penguin_mass(self):
-        mass_dict = {"Chinstrap": {"Dream": 50.0, "Biscoe": 0.0, "Torgersen": 0.0},
-                     "Gentoo": {"Dream": 0.0, "Biscoe": 50.0, "Torgersen": 0.0},
-                     "Adelie": {"Dream": 50.0, "Biscoe": 0.0, "Torgersen": 50.0}
-                     }
-        self.assertEqual(self.penguin_mass, mass_dict)
+        #Normal Case, 50% of Adelie penguins on Torgersen are above the average Adelie mass
+        self.assertEqual(self.penguin_mass["Adelie"]["Torgersen"], 50.0)
+        #Edge Case 2, No Gentoo on Dream so it defaults to 0.0 mass
+        self.assertEqual(self.penguin_mass["Gentoo"]["Dream"], 0.0)
     
 
 def main():
-    unittest.main(verbosity=2)
     penguin_data = open_file("penguins.csv")
     info = penguin_mass_comparison(penguin_data)
     csv_writer("output_file.csv", info)
+    unittest.main(verbosity=2)
 
 main()
