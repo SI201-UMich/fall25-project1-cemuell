@@ -10,7 +10,7 @@ import unittest
 def open_file(file):
     with open(file) as f:
         csvFile = csv.reader(f)
-        data = []
+        penguin_data = []
         headers = next(csvFile)
         for line in csvFile:
             d = {}
@@ -23,9 +23,9 @@ def open_file(file):
                 d[headers[6]] = line[6]
                 d[headers[7]] = line[7]
                 d[headers[8]] = line[8]
-                data.append(d)
+                penguin_data.append(d)
         f.close()
-        return data
+        return penguin_data
 
 def female_flipper(data):
     flipper_dict = {}
